@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 # import utility script
 from gemini_utilities.tools_converter import convert_mcp_tools_to_gemini
-from gemini_utilities.system_input import system_instruction, tool_instruction
+from gemini_utilities.system_input import system_instruction
 
 # load env
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
@@ -54,31 +54,34 @@ class MCPClient:
             server_file_path (str): takes in the file path to server script
         """
         # determine the script language
-        command = "python" if server_file_path.endswith(".py") else "node"
-        # define the parameter for connecting the MCP server
-        # check commands
-        print(f"Command: {command}, Args: {server_file_path}")
+        try:
+            command = "python" if server_file_path.endswith(".py") else "node"
+            # define the parameter for connecting the MCP server
+            # check commands
+            print(f"Command: {command}, Args: {server_file_path}")
 
-        server_params = StdioServerParameters(command=command, args=[server_file_path])
-        # establish connection with MCP server
-        stdio_transport = await self.exit_stack.enter_async_context(
-            stdio_client(server_params)
-            )
-        # extract the read and write transport object
-        self.stdio, self.write = stdio_transport
-        # initilize the mcp client
-        self.session = await self.exit_stack.enter_async_context(
-            ClientSession(self.stdio, self.write)
-            )
-        # send initilization request to the server
-        await self.session.initialize()
-        # request the list of available tools
-        response = await self.session.list_tools()
-        tools = response.tools  # extract the list of tools form  the response
-        # print the name of the tools available in the server
-        print("\nConnected to server with tools: ", [tool.name for tool in tools])
-        # convert mcp tools to Gemini format and attache it to the class
-        self.function_declaration = convert_mcp_tools_to_gemini(tools)
+            server_params = StdioServerParameters(command=command, args=[server_file_path])
+            # establish connection with MCP server
+            stdio_transport = await self.exit_stack.enter_async_context(
+                stdio_client(server_params)
+                )
+            # extract the read and write transport object
+            self.stdio, self.write = stdio_transport
+            # initilize the mcp client
+            self.session = await self.exit_stack.enter_async_context(
+                ClientSession(self.stdio, self.write)
+                )
+            # send initilization request to the server
+            await self.session.initialize()
+            # request the list of available tools
+            response = await self.session.list_tools()
+            mcp_tools = response.tools  # extract the list of tools form  the response
+            # print the name of the tools available in the server
+            print("\nConnected to server with tools: ", [mcp_tool.name for mcp_tool in mcp_tools])
+            # convert mcp tools to Gemini format and attache it to the class
+            self.function_declaration = convert_mcp_tools_to_gemini(mcp_tools)
+        except Exception as e:
+            print(f"Failed to connect to MCP server or load tools: {e}")
 
     async def process_query(self, query: str):
         """process the user query using the geimin API and execute tool calls if needed
@@ -114,7 +117,7 @@ class MCPClient:
             # pass the tools
             config=types.GenerateContentConfig(
                 tools=self.function_declaration,
-                system_instruction=tool_instruction
+                system_instruction=system_instruction
                 )
         )
         # initialize variable to store final resources
@@ -123,92 +126,119 @@ class MCPClient:
         # store assistance message
         # assistant_message_context = []
         # process the response recieved from Gemini
-        for candidate in response.candidates:
-            # ensure respond as content
-            if candidate.content.parts:
-                # check if part is a valid gemini response unit
-                for part in candidate.content.parts:
-                    if isinstance(part, types.Part):
-                        # check if part has function call
-                        if part.function_call:
-                            # extract the function call
-                            function_call_part = part
-                            # get the name of the mcp tool gemini wants to call
-                            tool_name = function_call_part.function_call.name
-                            # get thhe arguments gemini wants to pass
-                            tool_args = function_call_part.function_call.args
-                            # print debug information which tool is being call and with hwta arguments
-                            print(f"\n[Gemini requested toolcall:{tool_name} with args{tool_args}]")
+        try:
+            for candidate in response.candidates:
+                # ensure respond as content
+                if candidate.content.parts:
+                    # check if part is a valid gemini response unit
+                    for part in candidate.content.parts:
+                        if isinstance(part, types.Part):
+                            # check if part has function call
+                            if part.function_call:
+                                # extract the function call
+                                function_call_part = part
+                                # get the name of the mcp tool gemini wants to call
+                                tool_name = function_call_part.function_call.name
+                                # get thhe arguments gemini wants to pass
+                                tool_args = function_call_part.function_call.args
+                                # print debug information which tool is being call and with hwta arguments
+                                print(f"\n[Gemini requested toolcall:{tool_name} with args{tool_args}]")
 
-                            # execute tool with MCP server
-                            try:
-                                result = await self.session.call_tool(tool_name, arguments=tool_args)
-                                # store the output
-                                function_response = {"result": result.content}
-                            except Exception as e:
-                                function_response = {"error": str(e)}
-                            
-                            # format the tool response for gemini compatibility
-                            function_response_part = types.Part.from_function_response(
-                                # name of the tool
-                                name=tool_name,
-                                # response gotten
-                                response=function_response
-                            )
+                                # execute tool with MCP server
+                                try:
+                                    result = await self.session.call_tool(tool_name, arguments=tool_args)
+                                    # store the output
+                                    # If result.content is a list of TextContent objects, extract the actual text
+                                    if isinstance(result.content, list):
+                                        texts = [item.text for item in result.content if hasattr(item, "text")]
+                                        tool_result_text = "\n".join(texts)
+                                    else:
+                                        tool_result_text = str(result.content)
 
-                            # 
-                            function_response_content = types.Content(
-                                role="tool",
-                                parts=[function_response_part]
-                            )
-                            print(f"Tool response :{function_response}")
+                                    function_response = {"result": tool_result_text}
+                                except Exception as e:
+                                    function_response = {"error": str(e)}
+                                
+                                # format the tool response for gemini compatibility
+                                function_response_part = types.Part.from_function_response(
+                                    # name of the tool
+                                    name=tool_name,
+                                    # response gotten
+                                    response=function_response
+                                )
 
-                            # send the response and original prompt to the model
-                            response = self.genai_client.models.generate_content(
-                                model="gemini-2.0-flash-001",
-                                contents=[
-                                    # attach original query
-                                    history_content,
-                                    # include function call tool name and args
-                                    function_call_part,
-                                    # include tool excution result
-                                    function_response_content,
-                                ],
-                                config=types.GenerateContentConfig(
-                                    # provide available tool for the next phase
-                                    tools=self.function_declaration,
-                                    response_mime_type="application/json",
-                                    system_instruction=system_instruction
-                                ),
-                            )
-                            # extract response from Gemini after processing tool call
-                            final_text.append(response.candidates[0].content.parts[0].text)
-                            # Add the assistant's response to the conversation history
-                            self.conversation_history.append({"role": "assistant", "content": part.text})
-                        else:
-                            # if no tool call was requested, simply add gemini text
-                            final_text.append(part.text)
-                            # Add the assistant's response to the conversation history
-                            self.conversation_history.append({"role": "assistant", "content": part.text})
-                        # return the combined resonse as a single formatted string separated by a newline
-                        return "\n".join(final_text)
+                                # 
+                                function_response_content = types.Content(
+                                    role="tool",
+                                    parts=[function_response_part]
+                                )
+                                print(f"Tool response :{function_response}")
+                                try:
+                                    # send the response and original prompt to the model
+                                    response = self.genai_client.models.generate_content(
+                                        model="gemini-2.0-flash-001",
+                                        contents=[
+                                            # attach original query # unpacks the list correctly
+                                            *history_content,  
+                                            types.Content(
+                                                role="assistant",
+                                                # Wrap the function call
+                                                parts=[function_call_part]
+                                            ),
+                                            # tool execution result
+                                            function_response_content,
+                                            ],
+                                        config=types.GenerateContentConfig(
+                                            # provide available tool for the next phase
+                                            tools=self.function_declaration,
+                                            # response_mime_type="text",
+                                            system_instruction=system_instruction
+                                        ),
+                                    )
+                                    # extract response from Gemini after processing tool call
+                                    try:
+                                        follow_up = response.candidates[0].content.parts[0].text
+                                        # Add the assistant's response to the conversation history
+                                        final_text.append(follow_up)
+                                        
+                                    except (IndexError, AttributeError) as e:
+                                        error_msg = f"Error parsing Gemini response after tool call: {e}"
+                                        print(error_msg)
+                                        final_text.append(error_msg)
+                                    self.conversation_history.append({"role": "assistant", "content": part.text})
+                                except Exception as e:
+                                    error_msg = f"Error generating Gemini follow-up after tool call: {e}"
+                                    print(error_msg)
+                                    final_text.append(error_msg)
+                            else:
+                                # if no tool call was requested, simply add gemini text
+                                final_text.append(part.text)
+                                # Add the assistant's response to the conversation history
+                                self.conversation_history.append({"role": "assistant", "content": part.text})
+                            # return the combined resonse as a single formatted string separated by a newline
+                            return "\n".join(final_text)
+        except Exception as e:
+            return f"Error processing Gemini response: {e}"
     
     async def chat_loop(self):
         """run  interaction chat session with user in the loop
         """
 
         while True:
-            print("\nMCP client started! Type 'quit' to exit, or 'clear' to reset the conversation.")
-            query = await ainput("\nQuery: ")  #.strip()
-            if query.lower() == 'quit':
-                break
-            elif query.lower() == 'clear':
-                self.conversation_history = []  # Clear conversation history
-                print("Conversation history cleared.")
-                continue
-            # processs the user's query
-            response = await self.process_query(query)
-            print("\nGemini: " + response)
+            try:
+                print("\nMCP client started! Type 'quit' to exit, or 'clear' to reset the conversation.")
+                query = await ainput("\nQuery: ")  #.strip()
+                if query.lower() == 'quit':
+                    break
+                elif query.lower() == 'clear':
+                    self.conversation_history = []  # Clear conversation history
+                    print("Conversation history cleared.")
+                    continue
+                # processs the user's query
+                response = await self.process_query(query)
+                print("\nGemini: " + response)
+            except Exception as e:
+                print(f"\nAn unexpected error occurred during chat: {e}")
     
     async def clean_up(self):
         """Clean the resources before exiting

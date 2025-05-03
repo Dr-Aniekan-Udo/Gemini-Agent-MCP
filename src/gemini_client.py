@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 async def handle_request_with_retry(client, retries=3, delay=5):
     # Resolve server file path dynamically
-    server_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "gemini_server_sample.py"))
+    server_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "ga4_server.py"))
 
     for attempt in range(retries):
         try:
@@ -29,7 +29,7 @@ async def handle_request_with_retry(client, retries=3, delay=5):
             return  # Exit once connected successfully
         except Exception as e:
             if "503" in str(e):
-                logging.warning(f"Error: {e}. Retrying in {delay} seconds...")
+                logging.warning(f"Error: {e}. Retrying in {delay * (2 ** attempt)} seconds...")
                 await asyncio.sleep(delay * (2 ** attempt))  # Exponential backoff
             else:
                 logging.error(f"Critical error occurred: {e}")
@@ -56,5 +56,7 @@ if __name__ == "__main__":
     asyncio.run(test())
 
     asyncio.run(main())
-    #  uv run src/gemini_client.py src/gemini_server.py
-    # 256742771
+    #  uv run src/gemini_client.py src/gemini_server_sample.py
+    # acc 140900748
+    # prop 256742771
+

@@ -2,7 +2,7 @@
 from google.genai.types import Tool, FunctionDeclaration
 
 # import shema cleaning function
-from gemini_utilities.clean_schema import clean_schema
+from gemini_utilities.clean_schema import tool_schema_handler
 
 
 def convert_mcp_tools_to_gemini(mcp_tools):
@@ -19,7 +19,7 @@ def convert_mcp_tools_to_gemini(mcp_tools):
     for tool in mcp_tools:
         # ensure schema input is a valid JSON schema
 
-        parameters = clean_schema(tool.inputSchema)
+        parameters = tool_schema_handler(tool.inputSchema)
         # create a function declaration
         function_declaration = FunctionDeclaration(
             name=tool.name,

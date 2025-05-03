@@ -18,6 +18,45 @@ def clean_schema(schema):
     return schema
 
 
+def tool_schema_handler(schema):
+    """Recursively clean the schema by removing 'title' fields
+    and sanitizing file-like parameters to avoid Gemini file inference.
+
+    Args:
+        schema (dict): The schema dictionary.
+
+    Returns:
+        dict: Cleaned schema without 'title' fields and unnecessary 'format' keys.
+    """
+
+    if isinstance(schema, dict):
+        # Remove 'title' if present
+        schema.pop("title", None)
+
+        # Remove or sanitize suspicious 'format' fields
+        if schema.get("type") == "string" and schema.get("format") in ["uri", "binary"]:
+            schema.pop("format")
+
+        # Rename keys like 'file', 'document', etc., if needed
+        # (optional: rename keys in 'properties' dict if desired)
+
+        # Recursively clean nested 'properties'
+        if "properties" in schema and isinstance(schema["properties"], dict):
+            cleaned_properties = {}
+            for key, value in schema["properties"].items():
+                cleaned_properties[key] = clean_schema(value)
+            schema["properties"] = cleaned_properties
+
+        # Also clean items in case of array-type schemas
+        if "items" in schema:
+            schema["items"] = clean_schema(schema["items"])
+
+    elif isinstance(schema, list):
+        return [clean_schema(item) for item in schema]
+
+    return schema
+
+
 example_schema = {
     "title": "Example Schema",
     "properties": {
