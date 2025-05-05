@@ -6,7 +6,47 @@ It also integrates easily with claude desktop and gives helpful business intelli
 
 This is for Gemini model with sample server. The full server is not included.
 
-Contact me if your need the full project through [Gmail](aniekanetimudo@gmail.com) or [Linkedin](linkedin.com/in/aniekan-etim-udo)
+Contact me if you need the full project through [Gmail](mailto:aniekanetimudo@gmail.com) or [LinkedIn](https://www.linkedin.com/in/aniekan-etim-udo)
+## project structure
+```
+Directory structure:
+└── gemini-agent-mcp/
+    ├── README.md
+    ├── LICENSE
+    ├── main.py
+    ├── pyproject.toml
+    ├── uv.lock
+    ├── .python-version
+    └── src/
+        ├── __init__.py
+        ├── gemini_client.py
+        ├── gemini_server_sample.py
+        ├── gemini_utilities/
+        │   ├── __init__.py
+        │   ├── clean_schema.py
+        │   ├── stdio_chat_loop.py
+        │   ├── system_input.py
+        │   └── tools_converter.py
+        ├── logfolder/
+        │   ├── __init__.py
+        │   ├── logger.py
+        │   ├── logging_configs.json
+        │   └── logging_format.py
+        └── tool_sample/
+            ├── run_realtime_report.py
+            └── tabulated.py
+```
+## Features
+
+The server implements the following features:
+
+### Tools
+- `get_report`: retrieve your GA4 report based on required metrics, dimension and timeframe and give a detailed summary and insight based on the data
+- `get_realtime_report`: retrieve your GA4 report realtime report based on required metrics, dimension and timeframe and give a detailed summary and insight based on the data
+- `compare_report_metrics`: retrieve your GA4 report for two periods based on required metrics, dimension and give a comparative report and insight based on the data
+- `get_report_with_order`: retrieve your GA4 report report based on required metrics, dimension and timeframe, rank it based on specified metrics and give a detailed summary and insight based on the data
+- `list_all_properties`: retrieve your GA4 properties available in the current user
+- `list_all_accounts`: retrieve your GA4 account information, which it uses to get other information
 
 ## Setup Steps
 
@@ -47,7 +87,7 @@ uv run mcp dev src/gemini_server_sample.py
   Create a .env file inside `src` add Gemini_API_Key and google credential as shown below to your .env file
   ```ENV
     GOOGLE_APPLICATION_CREDENTIALS="C:\\Users\\`path to`\\credentials.json"
-    GEMINI_API_KEY=
+    GEMINI_API_KEY="add your gemini api key"
   ```
   run the client code
 ```bash
@@ -92,16 +132,4 @@ Set up the configuration properly
  End claude in task manager and restart it. Your tools will be visible on the chat interface.
 
  Ask Claude to get your GA4 information and accept the popup permit to use the tools required.
-
-
-## Features
-
-The server implements the following features:
-
-### Tools
-- `get_report`: retrieve your GA4 report based on required metrics, dimension and timeframe and give a detailed summary and insight based on the data
-- `get_realtime_report`: retrieve your GA4 report realtime report based on required metrics, dimension and timeframe and give a detailed summary and insight based on the data
-- `compare_report_metrics`: retrieve your GA4 report for two periods based on required metrics, dimension and give a comparative report and insight based on the data
-- `get_report_with_order`: retrieve your GA4 report report based on required metrics, dimension and timeframe, rank it based on specified metrics and give a detailed summary and insight based on the data
-- `list_all_properties`: retrieve your GA4 properties available in the current user
-- `list_all_accounts`: retrieve your GA4 account information, which it uses to get other information
+ 

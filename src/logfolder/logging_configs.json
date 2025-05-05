@@ -43,7 +43,7 @@
         "level": "DEBUG",
         "formatter": "json",
         "filename": "localserver/logfolder/logs/ga4_app.log.jsonl",
-        "maxBytes": 100000,
+        "maxBytes": 10000,
         "backupCount": 5
       },
       "queue_handler": {

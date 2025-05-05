@@ -4,7 +4,7 @@ import logging.config
 import pathlib
 import os
 
-logger = logging.getLogger("ga4_app")  # __name__ is a common choice
+logger = logging.getLogger("Google Analytics")  # __name__ is a common choice
 
 
 def setup_logging():
