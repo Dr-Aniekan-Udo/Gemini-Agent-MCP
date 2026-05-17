@@ -51,7 +51,6 @@ uv run mcp dev src/gemini_server_sample.py
 uv run mcp src/gemini_client.py
 # Claude Desktop
 uv run mcp install src/gemini_server_sample.py
-```
 Sample Queries
 - 
 "Get my traffic report for last week"
@@ -72,10 +71,12 @@ Data Source: Google Analytics 4 API
 Language: Python 3.10+
 - 
 Package Manager: uv
-Contact
-- 
-Email: aniekanetimudo+reachout@gmail.com (mailto:aniekanetimudo+reachout@gmail.com)
-- 
-LinkedIn: Aniekan Etim Udo (https://www.linkedin.com/in/aniekan-etim-udo)
+```
+Contact:
+
+Email: [Aniekan Udo @Gmail](mailto:aniekanetimudo+reachout@gmail.com)
+-
+LinkedIn: [Aniekan Udo @Linkedin](https://www.linkedin.com/in/aniekan-etim-udo)
+-
 License
 MIT
