@@ -44,13 +44,17 @@ Download Google credentials → rename to credentials.json
 Create src/.env:
 GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\credentials.json"
 GEMINI_API_KEY="your-key"
+```
 Run
+```
 # Development
 uv run mcp dev src/gemini_server_sample.py
 # Standalone client
 uv run mcp src/gemini_client.py
 # Claude Desktop
 uv run mcp install src/gemini_server_sample.py
+```
+```
 Sample Queries
 - 
 "Get my traffic report for last week"
@@ -60,23 +64,24 @@ Sample Queries
 "What are my top performing pages?"
 - 
 "Show real-time active users"
-Tech Stack
-- 
-Framework: LangGraph + MCP
-- 
-LLM: Google Gemini
-- 
-Data Source: Google Analytics 4 API
-- 
-Language: Python 3.10+
-- 
-Package Manager: uv
 ```
+
+## Tech Stack
+
+- Framework: LangGraph + MCP
+- LLM: Google Gemini
+- Data Source: Google Analytics 4 API 
+- Language: Python 3.10+
+- Package Manager: uv
+
+
 Contact:
+-
 
 Email: [Aniekan Udo @Gmail](mailto:aniekanetimudo+reachout@gmail.com)
--
+
 LinkedIn: [Aniekan Udo @Linkedin](https://www.linkedin.com/in/aniekan-etim-udo)
--
+
 License
+-
 MIT
