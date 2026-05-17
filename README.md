@@ -1,135 +1,81 @@
-# Gemini Agent For Google Analytics 4
-
-This is a Gemini Agent built with Model Context Protocol (MCP), with tools to retrieve information from Google analytics 4 cloud server. 
-
-It also integrates easily with claude desktop and gives helpful business intelligence feedback based on your data
-
-This is for Gemini model with sample server. The full server is not included.
-
-Contact me if you need the full project through [Gmail](mailto:aniekanetimudo@gmail.com) or [LinkedIn](https://www.linkedin.com/in/aniekan-etim-udo)
-## project structure
-```
-Directory structure:
-└── gemini-agent-mcp/
-    ├── README.md
-    ├── LICENSE
-    ├── main.py
-    ├── pyproject.toml
-    ├── uv.lock
-    ├── .python-version
-    └── src/
-        ├── __init__.py
-        ├── gemini_client.py
-        ├── gemini_server_sample.py
-        ├── gemini_utilities/
-        │   ├── __init__.py
-        │   ├── clean_schema.py
-        │   ├── stdio_chat_loop.py
-        │   ├── system_input.py
-        │   └── tools_converter.py
-        ├── logfolder/
-        │   ├── __init__.py
-        │   ├── logger.py
-        │   ├── logging_configs.json
-        │   └── logging_format.py
-        └── tool_sample/
-            ├── run_realtime_report.py
-            └── tabulated.py
-```
+# Gemini Agent for Google Analytics 4
+**Category:** AI & Agents  
+**Tech Stack:** Python, Gemini, MCP, Google Analytics 4 API  
+**Status:** Complete  
+**Thumbnail:** assets/thumbnail.png
+## Overview
+A Gemini-powered AI agent that connects to Google Analytics 4 via the Model Context Protocol (MCP). Ask natural language questions about your website traffic, get instant reports, and receive AI-summarized insights. Integrates with Claude Desktop or runs standalone.
 ## Features
-
-The server implements the following features:
-
-### Tools
-- `get_report`: retrieve your GA4 report based on required metrics, dimension and timeframe and give a detailed summary and insight based on the data
-- `get_realtime_report`: retrieve your GA4 report realtime report based on required metrics, dimension and timeframe and give a detailed summary and insight based on the data
-- `compare_report_metrics`: retrieve your GA4 report for two periods based on required metrics, dimension and give a comparative report and insight based on the data
-- `get_report_with_order`: retrieve your GA4 report report based on required metrics, dimension and timeframe, rank it based on specified metrics and give a detailed summary and insight based on the data
-- `list_all_properties`: retrieve your GA4 properties available in the current user
-- `list_all_accounts`: retrieve your GA4 account information, which it uses to get other information
-
-## Setup Steps
-
-1.  ## Initialize the project 
-    #### launch CMD where you want to keep your project, and clone the repo, enter project folder
-```bash
-    git clone https://github.com/Dr-Aniekan-Udo/Gemini-Agent-MCP.git
-    cd Gemini-Agent-MCP
+- **Natural Language Queries**: "Show me pageviews for the last 30 days"
+- **Real-Time Analytics**: Access live GA4 data instantly
+- **Period Comparison**: Compare this month vs last month automatically
+- **Ranked Reports**: "What are my top 10 pages by traffic?"
+- **Account Overview**: List all GA4 properties and accounts
+- **MCP Integration**: Works with Claude Desktop, MCP Inspector, or standalone
+## Project Structure
 ```
-
-2.  ## Create virtual environment and activate it
-```bash
-    uv venv
-    .venv\Scripts\activate
-  ```
-
-3.  ## Install dependencies:
-```bash
-    uv sync
+Gemini-Agent-MCP/
+├── src/
+│   ├── gemini_client.py          # Main client entry point
+│   ├── gemini_server_sample.py   # MCP server implementation
+│   ├── gemini_utilities/         # Server connection, encoding, prompts
+│   ├── openai_utilities/         # OpenAI client support (optional)
+│   ├── tool_sample/              # GA4 report tools
+│   └── logfolder/                # Structured logging
+├── main.py                       # App launcher
+├── pyproject.toml                # Dependencies
+└── README.md
 ```
-
-4.  ## Setup environment
-- set up your goggle account credentials and download the json file. rename it credentials.json
-- create a `.env` file inside the src folder
-- add the correct path to your google credentials in the env file
-    `GOOGLE_APPLICATION_CREDENTIALS="C:\\Users\\path to\\credentials.json"`
-
-## Running the Server
-
-#### To run on MCP inspector
-
-To run the server with the MCP Inspector for development:
+## Quick Start
+### Prerequisites
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/)
+- Google Cloud account with GA4 access
+- Gemini API key
+### Setup
 ```bash
+git clone https://github.com/Dr-Aniekan-Udo/Gemini-Agent-MCP.git
+cd Gemini-Agent-MCP
+uv venv && .venv\Scripts\activate
+uv sync
+1. 
+Download Google credentials → rename to credentials.json
+2. 
+Create src/.env:
+GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\credentials.json"
+GEMINI_API_KEY="your-key"
+Run
+# Development
 uv run mcp dev src/gemini_server_sample.py
-```
-
-#### To run the with Gemini client on terminal:
-  Create a .env file inside `src` add Gemini_API_Key and google credential as shown below to your .env file
-  ```ENV
-    GOOGLE_APPLICATION_CREDENTIALS="C:\\Users\\`path to`\\credentials.json"
-    GEMINI_API_KEY="add your gemini api key"
-  ```
-  run the client code
-```bash
+# Standalone client
 uv run mcp src/gemini_client.py
-```
-#### To run on Claude desktop
-
-To install the server in Claude desktop app:
-```bash
+# Claude Desktop
 uv run mcp install src/gemini_server_sample.py
 ```
-Set up the configuration properly
-- go to claude desktop.
-- click settings, go to developer and click on edit config
-- open the config file with sublime text
-- add the env section as the one shown below.
-- edit the claude configuration file to look like the one below. add the paths needed. remove `path to` and add the correct path
-```JSON
-{
-  "mcpServers": {
-    "Google Analytics 4": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--with",
-        "mcp[cli]",
-        "mcp",
-        "run",
-        "C:\\Users\\`path to`\\Gemini-Agent-MCP\\src\\gemini_server_sample.py"
-      ],
-      "env": {
-        "VIRTUAL_ENV": "C:\\Users\\`path to`\\Gemini-Agent-MCPmcp_ga4\\.venv",
-        "PATH": "C:\\Users\\`path to`\\Gemini-Agent-MCP\\.venv\\Scripts;${PATH}",
-        "GOOGLE_APPLICATION_CREDENTIALS": "C:\\Users\\`path to`\\credentials.json"
-      }
-    }
-  }
-}
-
-```
-
- End claude in task manager and restart it. Your tools will be visible on the chat interface.
-
- Ask Claude to get your GA4 information and accept the popup permit to use the tools required.
- 
+Sample Queries
+- 
+"Get my traffic report for last week"
+- 
+"Compare this month's sessions to last month"
+- 
+"What are my top performing pages?"
+- 
+"Show real-time active users"
+Tech Stack
+- 
+Framework: LangGraph + MCP
+- 
+LLM: Google Gemini
+- 
+Data Source: Google Analytics 4 API
+- 
+Language: Python 3.10+
+- 
+Package Manager: uv
+Contact
+- 
+Email: aniekanetimudo+reachout@gmail.com (mailto:aniekanetimudo+reachout@gmail.com)
+- 
+LinkedIn: Aniekan Etim Udo (https://www.linkedin.com/in/aniekan-etim-udo)
+License
+MIT
